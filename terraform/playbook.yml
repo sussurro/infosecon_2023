@@ -1,0 +1,13 @@
+---
+- name: Post-Config for Windows Instances
+  hosts: all
+  gather_facts: no
+  vars:
+    ansible_connection: winrm
+    ansible_winrm_transport: basic
+    ansible_winrm_server_cert_validation: ignore
+    ansible_user: Administrator
+  tasks:
+    - name: Write hostname to c:\hostname.txt
+      win_shell: echo abcd > c:\hostname.txt
+
