@@ -79,13 +79,24 @@ locals {
                 $admin.psbase.invoke("SetPassword", "${var.password}")
                 Set-NetFirewallProfile -Profile Domain,Public,Private -Enabled False
                 Enable-PSRemoting -Force
+		cmd.exe /c winrm quickconfig -q
+		cmd.exe /c winrm quickconfig '-transport:http'
+		cmd.exe /c winrm set "winrm/config" '@{MaxTimeoutms="1800000"}'
+		cmd.exe /c winrm set "winrm/config/winrs" '@{MaxMemoryPerShellMB="1024"}'
+		cmd.exe /c winrm set "winrm/config/service" '@{AllowUnencrypted="true"}'
+		cmd.exe /c winrm set "winrm/config/client" '@{AllowUnencrypted="true"}'
+		cmd.exe /c winrm set "winrm/config/service/auth" '@{Basic="true"}'
+		cmd.exe /c winrm set "winrm/config/client/auth" '@{Basic="true"}'
+		cmd.exe /c winrm set "winrm/config/service/auth" '@{CredSSP="true"}'
+		cmd.exe /c winrm set "winrm/config/listener?Address=*+Transport=HTTP" '@{Port="5985"}'
+
                 </powershell>
                 EOT
 }
 
 resource "aws_instance" "dc01" {
   ami           = data.aws_ami.windows_2016.id
-  instance_type = "t2.micro"
+  instance_type = "t2.medium"
   subnet_id     = aws_subnet.main.id
   private_ip    = "10.0.0.50"
   user_data_base64     = base64encode(local.user_data)
@@ -94,13 +105,13 @@ resource "aws_instance" "dc01" {
     Name = "DC01"
   }
   provisioner "local-exec" {
-    command = "ansible-playbook -i '${self.public_ip},' --extra-vars 'ansible_password=${var.password}' playbook.yml"
+    command = "ansible-playbook -i '${self.public_ip},' --extra-vars 'ansible_password=${var.password} ansible_connection=winrm ansible_winrm_port=5985 ansible_winrm_server_cert_validation=ignore ansible_winrm_scheme=http ansible_username=Administrator' playbook.yml"
   }
 }
 
 resource "aws_instance" "web01" {
   ami           = data.aws_ami.windows_2016.id
-  instance_type = "t2.micro"
+  instance_type = "t2.medium"
   subnet_id     = aws_subnet.main.id
   private_ip    = "10.0.0.30"
   user_data     = local.user_data
@@ -116,7 +127,7 @@ resource "aws_instance" "web01" {
 
 resource "aws_instance" "ws01" {
   ami           = data.aws_ami.windows_2016.id
-  instance_type = "t2.micro"
+  instance_type = "t2.medium"
   subnet_id     = aws_subnet.main.id
   private_ip    = "10.0.0.10"
   user_data     = local.user_data
