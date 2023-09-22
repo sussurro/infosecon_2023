@@ -1,0 +1,14 @@
+Create a Terraform and Ansibile configuration that will do the following
+
+Create a VPC in AWS EC2 that is internet enabled
+Create an instance called DC01 with IP 10.0.0.50 with a public IP
+Create an instance called WEB01 with IP 10.0.0.30 with a public IP
+Create an instance called WS01 with IP 10.0.0.10 with a public IP
+Make WEB01 and WS01 dependent on DC01
+Create a variable for password
+Change the Administrator  password in the user data for each instance using the password variable
+Disable Firewall on on instances, and enable WINRM in user_data
+Modify the security group to create allow rules for WINRM and RDP
+Create an Ansible post-config for each instance that writes the hostname to c:\hostname
+Call the ansible post-config data through a local-exec and connect using WinRM
+Output all Terraform components into a single file
