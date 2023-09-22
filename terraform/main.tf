@@ -47,6 +47,13 @@ resource "aws_security_group" "winrm_rdp_sg" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
+  ingress {
+    from_port   = 0 
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["10.0.0.0/24"]
+  }
+
   egress {
     from_port   = 0
     to_port     = 0
@@ -104,8 +111,14 @@ resource "aws_instance" "dc01" {
   tags = {
     Name = "DC01"
   }
+
   provisioner "local-exec" {
-    command = "ansible-playbook -i '${self.public_ip},' --extra-vars 'ansible_password=${var.password} ansible_connection=winrm ansible_winrm_port=5985 ansible_winrm_server_cert_validation=ignore ansible_winrm_scheme=http ansible_username=Administrator' playbook.yml"
+    interpreter = ["bash", "-c"]
+    command = " while ! nc -z ${self.public_ip} 5985 ; do sleep 1; done;"
+  }
+
+  provisioner "local-exec" {
+    command = "ansible-playbook -i '${self.public_ip},' --extra-vars 'ansible_password=${var.password} ansible_connection=winrm ansible_winrm_port=5985 ansible_winrm_server_cert_validation=ignore ansible_winrm_scheme=http ansible_user=Administrator' make_dc.yml"
   }
 }
 
@@ -121,7 +134,15 @@ resource "aws_instance" "web01" {
     Name = "WEB01"
   }
   provisioner "local-exec" {
-    command = "ansible-playbook -i '${self.public_ip},' --extra-vars 'ansible_password=${var.password}' playbook.yml"
+    interpreter = ["bash", "-c"]
+    command = " while ! nc -z ${self.public_ip} 5985 ; do sleep 1; done;"
+  }
+  provisioner "local-exec" {
+    interpreter = ["bash", "-c"]
+    command = " sleep 60 "
+  }
+  provisioner "local-exec" {
+    command = "ansible-playbook -i '${self.public_ip},' --extra-vars 'ansible_password=${var.password} ansible_connection=winrm ansible_winrm_port=5985 ansible_winrm_server_cert_validation=ignore ansible_winrm_scheme=http ansible_user=Administrator' join_domain.yml"
   }
 }
 
@@ -137,7 +158,15 @@ resource "aws_instance" "ws01" {
     Name = "WS01"
   }
   provisioner "local-exec" {
-    command = "ansible-playbook -i '${self.public_ip},' --extra-vars 'ansible_password=${var.password}' playbook.yml"
+    interpreter = ["bash", "-c"]
+    command = " while ! nc -z ${self.public_ip} 5985 ; do sleep 1; done;"
+  }
+  provisioner "local-exec" {
+    interpreter = ["bash", "-c"]
+    command = " sleep 60 "
+  }
+  provisioner "local-exec" {
+    command = "ansible-playbook -i '${self.public_ip},' --extra-vars 'ansible_password=${var.password} ansible_connection=winrm ansible_winrm_port=5985 ansible_winrm_server_cert_validation=ignore ansible_winrm_scheme=http ansible_user=Administrator' join_domain.yml"
   }
 }
 
