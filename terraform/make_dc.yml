@@ -1,0 +1,40 @@
+---
+- name: Configure Windows 2016 as Domain Controller
+  hosts: all
+  gather_facts: no
+  vars:
+    ansible_user: Administrator
+    domain_name: hax.local
+    safe_mode_pass: "{{ansible_password}}"
+
+  tasks:
+    - name: Install AD DS Role
+      win_feature:
+        name: AD-Domain-Services
+        state: present
+      register: ad_install
+
+    - name: Import AD DS module
+      win_shell: Import-Module ADDSDeployment
+
+    - name: Install AD DS Forest
+      win_shell: |
+        Install-ADDSForest `
+          -CreateDnsDelegation:$false `
+          -DatabasePath "C:\Windows\NTDS" `
+          -DomainMode Default `
+          -DomainName "{{ domain_name }}" `
+          -DomainNetbiosName "HAX" `
+          -ForestMode Default `
+          -InstallDns:$true `
+          -LogPath "C:\Windows\NTDS" `
+          -NoRebootOnCompletion:$true `
+          -SysvolPath "C:\Windows\SYSVOL" `
+          -Force:$true `
+          -SafeModeAdministratorPassword (ConvertTo-SecureString -AsPlainText "{{ safe_mode_pass }}" -Force)
+          #when: ad_install.changed
+
+    - name: Reboot server if needed
+      win_reboot:
+        #when: ad_install.changed
+

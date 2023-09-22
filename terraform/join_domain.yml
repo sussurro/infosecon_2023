@@ -1,0 +1,30 @@
+---
+- name: Configure Windows DNS and Join Domain
+  hosts: all
+  vars:
+    primary_dns: "10.0.0.50"
+    domain_name: "hax.local"
+    domain_user: "Administrator"
+    domain_pass: "{{ansible_password}}" # Consider using Ansible Vault for sensitive data
+
+  tasks:
+    - name: Set DNS Server
+      win_dns_client:
+        adapter_names: "*"
+        ipv4_addresses: "{{ primary_dns }}"
+    - name: Pause for DNS to catch up
+      pause:
+        seconds: 30
+
+    - name: Join to Domain
+      win_domain_membership:
+        dns_domain_name: "{{ domain_name }}"
+        domain_admin_user: "HAX\\Administrator"
+        domain_admin_password: "{{domain_pass}}"
+        state: domain
+      register: domain_state
+
+    - name: Reboot if required
+      win_reboot:
+      when: domain_state.reboot_required
+
