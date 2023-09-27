@@ -170,3 +170,23 @@ resource "aws_instance" "ws01" {
   }
 }
 
+
+
+
+output "DC01_public_ip" {
+  description = "The public IP address of DC01 instance."
+  value       = aws_instance.dc01.public_ip
+}
+
+
+output "WEB01_public_ip" {
+  description = "The public IP address of WEB01 instance."
+  value       = aws_instance.web01.public_ip
+}
+
+
+output "WS01_public_ip" {
+  description = "The public IP address of WS01 instance."
+  value       = aws_instance.ws01.public_ip
+}
+
