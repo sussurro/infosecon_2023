@@ -10,7 +10,9 @@
   tasks:
     - name: Install AD DS Role
       win_feature:
-        name: AD-Domain-Services
+        name: 
+          - AD-Domain-Services
+          - RSAT
         state: present
       register: ad_install
 

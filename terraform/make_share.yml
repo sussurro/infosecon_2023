@@ -1,0 +1,23 @@
+---
+- name: Create a Windows Share
+  hosts: all
+  gather_facts: no
+
+  tasks:
+    - name: "Create Directories"
+      win_file:
+        path: 'C:\share'
+        state: directory
+    - name: "Create SubDirectories"
+      win_file:
+        path: 'C:\share\UserProfiles'
+        state: directory
+
+
+    - name: "Make Share"
+      win_share:
+        name: CompanyShare
+        path: 'C:\share'
+        list: yes
+        full: "Authenticated users"
+

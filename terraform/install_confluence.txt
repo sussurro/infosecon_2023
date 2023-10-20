@@ -1,0 +1,1 @@
+C:\ProgramData\chocolatey\bin\atlassian-downloader.exe --output-dir c:\Atlassian --custom-feed https://my.atlassian.com/download/feeds/current/confluence.json --product-version 8.5.1

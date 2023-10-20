@@ -1,0 +1,52 @@
+---
+- name: Install Chocolatey and common goodness
+  hosts: all
+  gather_facts: no
+  vars:
+    chocolatey_installer: https://chocolatey.org/install.ps1
+    chocolatey_path: c:/ProgramData/chocolatey
+    chocolatey_windows_compression: "false"
+
+  tasks:
+    - name: "Check for existing chocolatey install."
+      win_stat:
+         path: "{{ chocolatey_path }}/choco.exe"
+      register: chocolatey_exe
+
+    - name: "Debug: Existing Chocolatey status."
+      debug:
+         var: chocolatey_exe
+         verbosity: 2
+
+    - name: "Install latest Chocolatey."
+      raw: "$env:chocolateyUseWindowsCompression='{{ chocolatey_windows_compression }}'; \
+       [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; \
+       iex ((New-Object System.Net.WebClient).DownloadString('{{ chocolatey_installer }}'))" 
+      register: chocolatey_install_result
+      when:
+         - chocolatey_exe.stat.exists is defined
+         - not chocolatey_exe.stat.exists
+
+    - name: "Debug: Chocolatey install output."
+      debug:
+         var: chocolatey_install_result
+         verbosity: 3
+     
+    - name: "Add chocolatey to PATH."
+      win_path:
+         name: PATH
+         elements: '%ALLUSERSPROFILE%\chocolatey\bin'
+         scope: machine
+         state: present
+
+    - name: "Check to see if packages are installed."
+      win_stat:
+         path: 'C:/Program Files/Google/Chrome/Application/chrome.exe'
+      register: chrome_exe
+
+    - name: "Install packages."
+      raw: "choco install atlassian-downloader googlechrome jdk8 javaruntime -y"
+      register: application_install_result 
+      when:
+         - chrome_exe.stat.exists is defined
+         - not chrome_exe.stat.exists
